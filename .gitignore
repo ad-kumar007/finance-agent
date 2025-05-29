@@ -1,0 +1,11 @@
+# Ignore heavy or local folders
+env/
+audio/
+faiss_index/
+__pycache__/
+*.mp3
+*.wav
+*.tmp
+*.pyc
+*.pkl
+.DS_Store
