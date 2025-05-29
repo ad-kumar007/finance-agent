@@ -4,8 +4,8 @@ WORKDIR /app
 
 RUN pip install --upgrade pip setuptools wheel
 
-COPY wheelhouse /wheelhouse
-COPY requirements.txt .
+RUN pip install -r requirements.txt
+
 
 RUN pip install --find-links=/wheelhouse -r requirements.txt
 
