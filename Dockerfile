@@ -1,21 +1,25 @@
-# Use a lightweight base image
-FROM python:3.10-slim
+# Use full Python base image (not slim) to avoid missing dependencies
+FROM python:3.10
 
-# Set the working directory in the container
+# Set working directory
 WORKDIR /app
 
-# Copy the requirements file
+# Copy only requirements first (use cache)
 COPY requirements.txt .
 
-# Install system dependencies (for whisper + audio)
-RUN apt-get update && apt-get install -y ffmpeg libsndfile1 && \
-    rm -rf /var/lib/apt/lists/*
+# Install system-level dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    git \
+    ffmpeg \
+    libsndfile1 \
+    && rm -rf /var/lib/apt/lists/*
 
-# Upgrade pip and install Python dependencies
+# Upgrade pip and install Python packages
 RUN pip install --upgrade pip && pip install -r requirements.txt
 
-# Copy the full app codebase
+# Copy all code after installing dependencies
 COPY . .
 
-# Set the default command to run your app
+# Run FastAPI app with Uvicorn
 CMD ["uvicorn", "orchestrator.main:app", "--host", "0.0.0.0", "--port", "8000"]
