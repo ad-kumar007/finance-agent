@@ -1,19 +1,16 @@
-# Base image
 FROM python:3.10-slim
 
-# Set work directory
 WORKDIR /app
 
-# Copy wheelhouse and requirements
+RUN pip install --upgrade pip setuptools wheel
+
 COPY wheelhouse /wheelhouse
 COPY requirements.txt .
 
-
-# Install dependencies from wheelhouse
 RUN pip install --find-links=/wheelhouse -r requirements.txt
 
-# Copy the entire codebase
 COPY . .
 
-# Run your app (update the path to main.py)
-CMD ["python", "orchestrator/main.py"]
+EXPOSE 8000
+
+CMD ["uvicorn", "orchestrator.main:app", "--host", "0.0.0.0", "--port", "8000"]
