@@ -6,7 +6,7 @@ from langchain.schema import HumanMessage
 from agents.retriever_agent import build_vector_store, retrieve_top_chunks
 
 # Load environment variables
-load_dotenv(".env")
+load_dotenv()
 
 openrouter_key = os.getenv("OPENROUTER_API_KEY")
 if not openrouter_key:

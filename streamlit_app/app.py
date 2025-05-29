@@ -4,7 +4,8 @@ import tempfile
 import os
 import mimetypes
 
-API_BASE_URL = "http://localhost:8001"  # Change if hosted remotely
+API_BASE_URL = "http://backend:8001"
+  # Change if hosted remotely
 
 st.set_page_config(page_title="Morning Market Brief", page_icon="📊")
 st.title("📊 Morning Market Brief - Finance Assistant")

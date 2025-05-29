@@ -1,9 +1,30 @@
-.env
+# Ignore Python cache
 __pycache__/
 *.pyc
+*.pyo
+
+# Ignore virtual environments
+.venv/
 env/
 venv/
-audio/
-*.mp3
-*.wav
+
+# Ignore Git
+.git/
+.gitignore
+
+# Ignore large local files
+*.log
+*.csv
+*.pdf
+*.mp4
+*.zip
+*.tar.gz
+*.whl
+
+# Node or frontend stuff
+node_modules/
+
+# Ignore VSCode settings and OS files
+.vscode/
 .DS_Store
+Thumbs.db

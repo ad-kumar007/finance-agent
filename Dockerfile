@@ -1,25 +1,18 @@
-# Start from the base Python image
+# Base image
 FROM python:3.10-slim
 
 # Set work directory
 WORKDIR /app
 
-# System dependencies for whisper, ffmpeg, etc.
-RUN apt-get update && \
-    apt-get install -y ffmpeg build-essential libssl-dev libffi-dev git curl && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
-
-# Copy requirements file
+# Copy wheelhouse and requirements
+COPY wheelhouse /wheelhouse
 COPY requirements.txt .
 
-# Clean pip cache & install Python dependencies safely
-RUN pip install --upgrade pip && \
-    pip cache purge && \
-    pip install --no-cache-dir --no-deps -r requirements.txt
+# Install dependencies from wheelhouse
+RUN pip install --find-links=/wheelhouse -r requirements.txt
 
-# Copy your app code
+# Copy the entire codebase
 COPY . .
 
-# Set entrypoint or default CMD
-CMD ["streamlit", "run", "app.py"]
+# Run your app (update the path to main.py)
+CMD ["python", "orchestrator/main.py"]
