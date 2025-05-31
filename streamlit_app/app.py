@@ -25,9 +25,17 @@ if st.button("Get Answer (Text)"):
                 response.raise_for_status()
                 data = response.json()
 
-                st.success("✅ Answer received!")
-                st.write("**You asked:**", data["question"])
-                st.write("**Answer:**", data["answer"])
+                # Debug line removed to avoid showing full JSON response
+                # st.write("Response JSON:", data)
+
+                if "error" in data:
+                    st.error(f"❌ Server error: {data['error']}")
+                elif "question" in data and "answer" in data:
+                    st.success("✅ Answer received!")
+                    st.write("**You asked:**", data["question"])
+                    st.write("**Answer:**", data["answer"])
+                else:
+                    st.error("❌ Unexpected response format from server.")
             except Exception as e:
                 st.error(f"❌ Error getting answer: {e}")
 
@@ -39,6 +47,7 @@ audio_file = st.file_uploader("Upload a recorded question (wav, mp3, m4a):", typ
 if audio_file is not None:
     if st.button("Get Answer (Audio)"):
         with st.spinner("⏳ Processing your audio..."):
+            tmp_filename = None
             try:
                 with tempfile.NamedTemporaryFile(delete=False, suffix=os.path.splitext(audio_file.name)[1]) as tmp_file:
                     tmp_file.write(audio_file.read())
@@ -46,24 +55,32 @@ if audio_file is not None:
 
                 # Send to FastAPI
                 with open(tmp_filename, "rb") as f:
-                    files = {"file": (audio_file.name, f)}
+                    files = {"audio_file": (audio_file.name, f)}
                     response = requests.post(f"{API_BASE_URL}/ask_audio", files=files)
                     response.raise_for_status()
                     data = response.json()
 
-                st.success("✅ Answer received!")
-                st.write("**You asked:**", data["question"])
-                st.write("**Answer:**", data["answer"])
+                # Debug: Show entire response
+                # st.write("Response JSON:", data)
 
-                # Play generated answer audio
-                audio_resp = requests.get(f"{API_BASE_URL}/audio/{data['answer_audio_file']}")
-                if audio_resp.status_code == 200:
-                    mime_type, _ = mimetypes.guess_type(data["answer_audio_file"])
-                    st.audio(audio_resp.content, format=mime_type or "audio/mp3")
+                if "error" in data:
+                    st.error(f"❌ Server error: {data['error']}")
+                elif all(k in data for k in ("question", "answer", "answer_audio_file")):
+                    st.success("✅ Answer received!")
+                    st.write("**You asked:**", data["question"])
+                    st.write("**Answer:**", data["answer"])
+
+                    # Play generated answer audio
+                    audio_resp = requests.get(f"{API_BASE_URL}/audio/{data['answer_audio_file']}")
+                    if audio_resp.status_code == 200:
+                        mime_type, _ = mimetypes.guess_type(data["answer_audio_file"])
+                        st.audio(audio_resp.content, format=mime_type or "audio/mp3")
+                    else:
+                        st.warning("⚠️ Could not fetch the answer audio.")
                 else:
-                    st.warning("⚠️ Could not fetch the answer audio.")
+                    st.error("❌ Unexpected response format from server.")
             except Exception as e:
                 st.error(f"❌ Error: {e}")
             finally:
-                if os.path.exists(tmp_filename):
+                if tmp_filename and os.path.exists(tmp_filename):
                     os.remove(tmp_filename)
