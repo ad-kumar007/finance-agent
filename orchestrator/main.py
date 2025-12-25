@@ -2,12 +2,38 @@ import os
 import uuid
 from fastapi import FastAPI, UploadFile, File
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from agents.language_agent import answer_question
 from orchestrator.voice_agent import speech_to_text, text_to_speech  # helper functions
+from orchestrator.fallback_handler import fallback_handler, handle_exception
 import traceback  # For better error logging
+import logging
 
-app = FastAPI()
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("Orchestrator")
+
+app = FastAPI(
+    title="Finance Assistant API",
+    description="Multi-Agent Finance Assistant with voice support",
+    version="1.0.0"
+)
+
+# Add CORS middleware for React frontend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allow all origins for development
+    allow_credentials=False,  # Must be False when using wildcard
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+
+@app.get("/")
+async def root():
+    """Health check endpoint."""
+    return {"status": "healthy", "service": "Finance Assistant Orchestrator"}
 
 # Create directory to store audio responses
 AUDIO_DIR = "audio"
@@ -20,15 +46,22 @@ class Question(BaseModel):
 
 @app.post("/ask_llm")
 async def ask_llm(data: Question):
+    """
+    Answer a text question using RAG and LLM.
+    """
     try:
+        logger.info(f"Processing question: {data.question[:100]}")
         answer = answer_question(data.question)
+        logger.info("Successfully generated answer")
         return {
             "question": data.question,
             "answer": answer
         }
     except Exception as e:
+        logger.error(f"Error in ask_llm: {e}")
         traceback.print_exc()
-        return {"error": str(e)}
+        fallback = handle_exception("language_agent", data.question, e)
+        return {"error": fallback["message"], "suggestions": fallback.get("suggestions", [])}
 
 # ---------------------- AUDIO ENDPOINTS ----------------------
 

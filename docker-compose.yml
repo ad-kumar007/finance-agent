@@ -7,20 +7,43 @@ services:
       dockerfile: Dockerfile
     container_name: finance-backend
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - .:/app
-    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY}
+    command: uvicorn orchestrator.main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   frontend:
-  build:
-    context: ./frontend  # or . if Dockerfile is in root
-    dockerfile: Dockerfile  # or specify custom name if different
-  container_name: streamlit_app
-  ports:
-    - "8501:8501"
-  volumes:
-    - .:/app
-  depends_on:
-    - orchestrator  # if needed
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-frontend
+    ports:
+      - "8501:8501"
+    volumes:
+      - .:/app
+    environment:
+      - API_BASE_URL=http://backend:8000
+    depends_on:
+      - backend
+    command: streamlit run streamlit_app/app.py --server.port 8501 --server.address 0.0.0.0
 
+  api_agent:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: finance-api-agent
+    ports:
+      - "8002:8002"
+    volumes:
+      - .:/app
+    environment:
+      - ALPHAVANTAGE_API_KEY=${ALPHAVANTAGE_API_KEY}
+    command: uvicorn data_ingestion.api_agent:app --host 0.0.0.0 --port 8002 --reload

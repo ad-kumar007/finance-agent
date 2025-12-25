@@ -6,8 +6,8 @@ from bs4 import BeautifulSoup
 
 from langchain_community.vectorstores import FAISS
 from langchain_community.embeddings import SentenceTransformerEmbeddings
-from langchain.document_loaders import TextLoader, CSVLoader, PyPDFLoader
-from langchain.text_splitter import CharacterTextSplitter
+from langchain_community.document_loaders import TextLoader
+from langchain_text_splitters import CharacterTextSplitter
 
 
 def scrape_webpage(url: str, save_path: str = "data_ingestion/webpage_content.txt") -> str:
@@ -36,21 +36,20 @@ def scrape_webpage(url: str, save_path: str = "data_ingestion/webpage_content.tx
 
 def load_documents(file_paths: list):
     """
-    Load documents (txt, csv, pdf) into LangChain document objects.
+    Load documents (txt) into LangChain document objects.
     """
     docs = []
     for path in file_paths:
         ext = os.path.splitext(path)[1].lower()
         if ext == ".txt":
-            loader = TextLoader(path)
-        elif ext == ".csv":
-            loader = CSVLoader(path)
-        elif ext == ".pdf":
-            loader = PyPDFLoader(path)
+            try:
+                loader = TextLoader(path, encoding='utf-8')
+                docs.extend(loader.load())
+            except Exception as e:
+                print(f"Error loading {path}: {e}")
         else:
             print(f"Unsupported file type {ext}, skipping {path}")
             continue
-        docs.extend(loader.load())
     return docs
 
 
