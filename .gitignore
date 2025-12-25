@@ -1,11 +1,71 @@
-# Ignore heavy or local folders
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
 env/
+venv/
+ENV/
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Project specific - Large files
 audio/
 faiss_index/
-__pycache__/
 *.mp3
 *.wav
-*.tmp
-*.pyc
+*.webm
+*.m4a
 *.pkl
-.DS_Store
+*.faiss
+
+# Frontend
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.vite/
+frontend/.cache/
+
+# Logs
+*.log
+logs/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+temp/

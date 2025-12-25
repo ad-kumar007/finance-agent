@@ -17,7 +17,6 @@ if not openrouter_key:
 # Define base URL for OpenRouter
 openai_base_url = "https://openrouter.ai/api/v1"
 
-# Initialize LLM with proper credentials
 llm = ChatOpenAI(
     temperature=0.2,
     api_key=openrouter_key,
